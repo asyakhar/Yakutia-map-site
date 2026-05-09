@@ -37,7 +37,11 @@ jobs:
         run: pnpm install
 
       - name: Build static site
-        run: pnpm run build
+        run: |
+          if [ -f next.config.prod.mjs ]; then
+            cp next.config.prod.mjs next.config.mjs
+          fi
+          pnpm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

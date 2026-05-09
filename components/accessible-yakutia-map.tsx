@@ -295,8 +295,16 @@ export default function AccessibleYakutiaMap() {
 
   // Load data
   useEffect(() => {
-    fetch("/site-test-map/data/objects.json")
-      .then((res) => res.json())
+    // Для локальной разработки: '', для GitHub Pages: '/site-test-map'
+    const basePath = process.env.NODE_ENV === 'production' 
+      ? '/site-test-map'  // GitHub Pages
+      : ''                // localhost
+      
+    fetch(`${basePath}/data/objects.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
       .then((data) => setObjects(data))
       .catch((err) => console.error("Error loading data:", err))
   }, [])
