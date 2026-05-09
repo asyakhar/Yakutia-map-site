@@ -289,7 +289,7 @@ export default function AccessibleYakutiaMap() {
 
   // Load data
   useEffect(() => {
-    fetch("/data/objects.json")
+    fetch("./data/objects.json")
       .then((res) => res.json())
       .then((data) => setObjects(data))
       .catch((err) => console.error("Error loading data:", err))
