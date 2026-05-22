@@ -23,6 +23,22 @@ type MapAreaProps = {
   setSelectedPlace: (id: string | null) => void;
 };
 
+// Центр карты - Якутск
+const MAP_CENTER = { lat: 62.0278, lng: 129.7317 };
+const MAP_ZOOM = 12;
+
+// Функция для преобразования координат в позицию на карте
+function coordinatesToPosition(lat: number, lng: number) {
+  // Примерный диапазон координат для отображения
+  const latRange = { min: 60.5, max: 63.5 };
+  const lngRange = { min: 127.0, max: 132.0 };
+  
+  const top = ((latRange.max - lat) / (latRange.max - latRange.min)) * 100;
+  const left = ((lng - lngRange.min) / (lngRange.max - lngRange.min)) * 100;
+  
+  return { top: `${top}%`, left: `${left}%` };
+}
+
 const typeIcons = {
   museum: Landmark,
   wellness: Heart,
@@ -56,12 +72,9 @@ export function MapArea({ places, selectedPlace, setSelectedPlace }: MapAreaProp
 
       {/* Place Markers */}
       <div className="absolute inset-0 pointer-events-none">
-        {places.map((place, index) => {
+        {places.map((place) => {
           const Icon = typeIcons[place.type as keyof typeof typeIcons] || MapPin;
-          const position = {
-            top: `${30 + (index * 15) % 40}%`,
-            left: `${25 + (index * 20) % 50}%`,
-          };
+          const position = coordinatesToPosition(place.lat, place.lng);
 
           return (
             <button
