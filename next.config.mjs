@@ -8,6 +8,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+   allowedDevOrigins: [
+    '192.168.0.105',     // IP вашего iPhone (замените на актуальный)
+    '*.local',           // Для macOS .local адресов
+    '*.local-ip.com',    // Альтернативный вариант для локальных IP
+  ],
 }
 
 export default nextConfig

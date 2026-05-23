@@ -6,9 +6,8 @@ import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Filter,
   X,
@@ -44,6 +43,7 @@ import {
   Ticket,
   GraduationCap,
   Menu,
+  Search,
 } from "lucide-react"
 
 // Types
@@ -62,6 +62,10 @@ interface MapObject {
   }
 }
 
+export interface AccessibleYakutiaMapProps {
+  onPlaceSelect?: (id: string) => void
+}
+
 // Configuration
 const CONFIG = {
   mapCenter: [62.0355, 129.6755] as [number, number],
@@ -70,20 +74,28 @@ const CONFIG = {
   maxZoom: 18,
 }
 
-// Filter colors - modern palette
+// Theme Colors
+const THEME = {
+  primary: "#4ECDC4",
+  secondary: "#1B3A5C",
+  background: "#F7F3E8",
+  textMain: "#2C3E50",
+}
+
+// Filter colors
 const FILTER_COLORS: Record<string, string> = {
-  inclusive: "#3b82f6",
-  vision_impaired: "#8b5cf6",
-  hearing_impaired: "#ec4899",
-  deaf_mute: "#f97316",
-  dietary: "#22c55e",
-  cardiovascular: "#ef4444",
-  mobility: "#06b6d4",
-  mental: "#6366f1",
-  respiratory: "#14b8a6",
-  family: "#eab308",
-  ethnomedicine: "#84cc16",
-  health: "#0ea5e9",
+  inclusive: "#4ECDC4",
+  vision_impaired: "#FF6B6B",
+  hearing_impaired: "#FFA07A",
+  deaf_mute: "#DDA15E",
+  dietary: "#95E1D3",
+  cardiovascular: "#E63946",
+  mobility: "#457B9D",
+  mental: "#A8DADC",
+  respiratory: "#1D3557",
+  family: "#FFB703",
+  ethnomedicine: "#8B5A3C",
+  health: "#52B788",
 }
 
 // Filter definitions
@@ -102,7 +114,6 @@ const CATEGORY_FILTERS = [
   { id: "health", name: "Здоровье", icon: Hospital },
 ]
 
-// Category translations and icons
 const CATEGORY_CONFIG: Record<string, { name: string; icon: typeof Building2 }> = {
   museum: { name: "Музей", icon: Building2 },
   hotel: { name: "Гостиница", icon: Hotel },
@@ -121,53 +132,25 @@ const CATEGORY_CONFIG: Record<string, { name: string; icon: typeof Building2 }> 
   education: { name: "Образование", icon: GraduationCap },
 }
 
-// Feature translations
 const FEATURE_NAMES: Record<string, string> = {
-  ramp: "Пандус",
-  wide_doors: "Широкие двери",
-  accessible_wc: "Доступный туалет",
-  elevator: "Лифт",
-  handrail: "Поручни",
-  low_curbs: "Низкие бордюры",
-  braille: "Шрифт Брайля",
-  audio_description: "Аудиоописание",
-  tactile_exhibits: "Тактильные экспонаты",
-  induction_loop: "Индукционная петля",
-  visual_display: "Визуальные табло",
-  sign_language_staff: "Персонал со знанием ЖЯ",
-  sign_language_guide: "Экскурсовод с ЖЯ",
-  visual_menu: "Визуальное меню",
-  text_chat: "Текстовый чат",
-  diabetic_menu: "Диабетическое меню",
-  gluten_free: "Безглютеновое меню",
-  exact_ingredients: "Точный состав блюд",
-  adapted_national: "Адаптированные блюда",
-  near_medical: "Рядом с медучреждением",
-  cardio_diet: "Кардио-диета",
-  quiet_zone: "Тихая зона",
-  sensory_friendly: "Сенсорно-дружественная",
-  pictogram_nav: "Пиктограммы",
-  quiet_hours: "Тихие часы",
-  air_quality_good: "Чистый воздух",
-  air_purifier: "Очиститель воздуха",
-  clean_zone: "Чистая зона",
-  changing_table: "Пеленальный столик",
-  kids_menu: "Детское меню",
-  mother_child_room: "Комната матери",
-  accessible_play: "Игровая зона",
-  pediatrician: "Педиатр рядом",
-  staff_assist: "Помощь персонала",
-  low_frontdesk: "Низкая стойка",
-  thermal_spring: "Термальный источник",
-  mud_therapy: "Грязелечение",
-  diagnostic_center: "Диагностика",
-  ethno_herbs: "Травничество",
-  ethno_rituals: "Ритуалы исцеления",
-  ethno_bonesetter: "Костоправ",
+  ramp: "Пандус", wide_doors: "Широкие двери", accessible_wc: "Доступный туалет",
+  elevator: "Лифт", handrail: "Поручни", low_curbs: "Низкие бордюры",
+  braille: "Шрифт Брайля", audio_description: "Аудиоописание", tactile_exhibits: "Тактильные экспонаты",
+  induction_loop: "Индукционная петля", visual_display: "Визуальные табло",
+  sign_language_staff: "Персонал со знанием ЖЯ", sign_language_guide: "Экскурсовод с ЖЯ",
+  visual_menu: "Визуальное меню", text_chat: "Текстовый чат", diabetic_menu: "Диабетическое меню",
+  gluten_free: "Безглютеновое меню", exact_ingredients: "Точный состав блюд",
+  adapted_national: "Адаптированные блюда", near_medical: "Рядом с медучреждением",
+  cardio_diet: "Кардио-диета", quiet_zone: "Тихая зона", sensory_friendly: "Сенсорно-дружественная",
+  pictogram_nav: "Пиктограммы", quiet_hours: "Тихие часы", air_quality_good: "Чистый воздух",
+  air_purifier: "Очиститель воздуха", clean_zone: "Чистая зона", changing_table: "Пеленальный столик",
+  kids_menu: "Детское меню", mother_child_room: "Комната матери", accessible_play: "Игровая зона",
+  pediatrician: "Педиатр рядом", staff_assist: "Помощь персонала", low_frontdesk: "Низкая стойка",
+  thermal_spring: "Термальный источник", mud_therapy: "Грязелечение", diagnostic_center: "Диагностика",
+  ethno_herbs: "Травничество", ethno_rituals: "Ритуалы исцеления", ethno_bonesetter: "Костоправ",
   ethno_banya: "Якутская баня",
 }
 
-// Accessibility filters
 const ACCESSIBILITY_FILTERS = [
   { id: "ramp", name: "Пандус", group: "mobility" },
   { id: "wide_doors", name: "Широкие двери", group: "mobility" },
@@ -194,37 +177,9 @@ const ACCESSIBILITY_FILTERS = [
   { id: "mother_child_room", name: "Комната матери", group: "family" },
 ]
 
-// Create custom marker icon with SVG instead of emoji
-function createMarkerIcon(color: string, IconComponent: typeof Building2) {
-  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`
-  
-  return L.divIcon({
-    className: "custom-marker-wrapper",
-    html: `<div style="
-      width: 36px;
-      height: 36px;
-      background: ${color};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 8px ${color}80, 0 2px 4px rgba(0,0,0,0.15);
-      border: 2.5px solid white;
-    ">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-      </svg>
-    </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -18],
-  })
-}
-
-// Create marker icon based on category
 function getCategoryMarkerIcon(category: string, color: string) {
   const iconPaths: Record<string, string> = {
-    museum: '<path d="M3 22V8l9-6 9 6v14"/><path d="M6 22V11h4v11"/><path d="M14 22V11h4v11"/>',
+    museum: '<path d="M3 22V8l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M6 22V11h4v11"/><path d="M14 22V11h4v11"/>',
     hotel: '<path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
     restaurant: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
     cafe: '<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>',
@@ -240,25 +195,12 @@ function getCategoryMarkerIcon(category: string, color: string) {
     entertainment: '<rect width="20" height="12" x="2" y="6" rx="2"/><path d="M6 12h.01"/><path d="M10 12h.01"/><path d="M14 12h.01"/><path d="M18 12h.01"/>',
     education: '<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
   }
-  
   const iconPath = iconPaths[category] || '<circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/>'
   
   return L.divIcon({
     className: "custom-marker-wrapper",
-    html: `<div style="
-      width: 36px;
-      height: 36px;
-      background: ${color};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 8px ${color}80, 0 2px 4px rgba(0,0,0,0.15);
-      border: 2.5px solid white;
-    ">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        ${iconPath}
-      </svg>
+    html: `<div style="width: 36px; height: 36px; background: ${color}; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 2px solid white;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconPath}</svg>
     </div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 18],
@@ -266,17 +208,14 @@ function getCategoryMarkerIcon(category: string, color: string) {
   })
 }
 
-// Map bounds controller
 function MapBoundsController({ objects }: { objects: MapObject[] }) {
   const map = useMap()
-  
   useEffect(() => {
     if (objects.length > 0) {
       const bounds = L.latLngBounds(objects.map(obj => obj.coordinates))
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 })
     }
   }, [objects, map])
-  
   return null
 }
 
@@ -286,371 +225,315 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 })
-export default function AccessibleYakutiaMap() {
+
+// Вспомогательный компонент для сайдбара, чтобы избежать проблем с фокусом
+interface SidebarContentProps {
+  activeLayers: string[]
+  activeFilters: string[]
+  searchQuery: string
+  filteredObjectsCount: number
+  toggleLayer: (id: string) => void
+  toggleFilter: (id: string) => void
+  resetFilters: () => void
+  setSearchQuery: (query: string) => void
+  expandedSection: "categories" | "accessibility" | null
+  setExpandedSection: (section: "categories" | "accessibility" | null) => void
+  onClose?: () => void
+}
+
+function SidebarContent({
+  activeLayers,
+  activeFilters,
+  searchQuery,
+  filteredObjectsCount,
+  toggleLayer,
+  toggleFilter,
+  resetFilters,
+  setSearchQuery,
+  expandedSection,
+  setExpandedSection,
+  onClose,
+}: SidebarContentProps) {
+  return (
+    <div className="flex h-full flex-col bg-white">
+      {/* Header with Search */}
+      <div className="flex flex-col border-b border-gray-200 bg-[#1B3A5C] px-4 py-4 gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4ECDC4] text-white shadow-lg">
+              <Filter className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-bold text-white">Фильтры</h2>
+              <p className="text-xs text-white/80">Показано: {filteredObjectsCount} мест</p>
+            </div>
+          </div>
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+        
+        {/* Search Input */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+          <input
+            type="text"
+            placeholder="Поиск по названию..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#4ECDC4] focus:bg-white/15 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Категории */}
+        <div className="space-y-2">
+          <button
+            onClick={() => setExpandedSection(expandedSection === "categories" ? null : "categories")}
+            className="flex w-full items-center justify-between text-left font-bold text-[#2C3E50] hover:text-[#4ECDC4] transition-colors"
+          >
+            <span>Категории</span>
+            {expandedSection === "categories" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {expandedSection === "categories" && (
+            <div className="space-y-1">
+              {CATEGORY_FILTERS.map((filter) => {
+                const IconComponent = filter.icon
+                const isActive = activeLayers.includes(filter.id)
+                return (
+                  <label key={filter.id} className={`flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-all border ${isActive ? "bg-[#4ECDC4]/10 border-[#4ECDC4]" : "bg-white border-gray-200 hover:border-[#4ECDC4]/50"}`}>
+                    <Checkbox checked={isActive} onCheckedChange={() => toggleLayer(filter.id)} className="data-[state=checked]:bg-[#4ECDC4] data-[state=checked]:border-[#4ECDC4]" />
+                    <div className="size-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${FILTER_COLORS[filter.id]}20` }}>
+                      <IconComponent className="size-4" style={{ color: FILTER_COLORS[filter.id] }} />
+                    </div>
+                    <span className="text-sm font-medium text-[#2C3E50]">{filter.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Удобства */}
+        <div className="space-y-2 pt-2 border-t border-gray-100">
+          <button
+            onClick={() => setExpandedSection(expandedSection === "accessibility" ? null : "accessibility")}
+            className="flex w-full items-center justify-between text-left font-bold text-[#2C3E50] hover:text-[#4ECDC4] transition-colors"
+          >
+            <span>Удобства</span>
+            {expandedSection === "accessibility" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {expandedSection === "accessibility" && (
+            <div className="grid grid-cols-1 gap-2">
+              {ACCESSIBILITY_FILTERS.map((filter) => {
+                const isActive = activeFilters.includes(filter.id)
+                return (
+                  <label key={filter.id} className={`flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition-all ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}>
+                    <Checkbox checked={isActive} onCheckedChange={() => toggleFilter(filter.id)} className="data-[state=checked]:bg-[#4ECDC4] data-[state=checked]:border-[#4ECDC4]" />
+                    <span className="text-sm text-[#2C3E50]">{filter.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <Button variant="outline" className="w-full gap-2 h-11 border-[#1B3A5C]/20 text-[#1B3A5C] hover:bg-[#1B3A5C]/5" onClick={resetFilters}>
+          <RotateCcw className="h-4 w-4" /> Сбросить фильтры
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+export default function AccessibleYakutiaMap({ onPlaceSelect }: AccessibleYakutiaMapProps) {
   const [objects, setObjects] = useState<MapObject[]>([])
   const [activeLayers, setActiveLayers] = useState<string[]>(["inclusive"])
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedSection, setExpandedSection] = useState<"categories" | "accessibility" | null>("categories")
+  const [searchQuery, setSearchQuery] = useState("")
 
-  // Load data
   useEffect(() => {
-    // Для локальной разработки: '', для GitHub Pages: '/site-test-map'
-    const basePath = process.env.NODE_ENV === 'production' 
-      ? '/site-test-map'  // GitHub Pages
-      : ''                // localhost
-      
+    const basePath = process.env.NODE_ENV === 'production' ? '/site-test-map' : ''
     fetch(`${basePath}/data/objects.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
+      .then((res) => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
       .then((data) => setObjects(data))
       .catch((err) => console.error("Error loading data:", err))
   }, [])
 
-  // Toggle layer
   const toggleLayer = useCallback((id: string) => {
-    setActiveLayers((prev) =>
-      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]
-    )
+    setActiveLayers((prev) => prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id])
   }, [])
 
-  // Toggle filter
   const toggleFilter = useCallback((id: string) => {
-    setActiveFilters((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    )
+    setActiveFilters((prev) => prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id])
   }, [])
 
-  // Reset filters
   const resetFilters = useCallback(() => {
     setActiveLayers(["inclusive"])
     setActiveFilters([])
+    setSearchQuery("")
   }, [])
 
-  // Filter objects
   const filteredObjects = objects.filter((obj) => {
+    // 1. Поиск
+    const matchesSearch = searchQuery.trim() === "" || 
+      obj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      obj.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    // 2. Слои
     const hasActiveLayer = obj.layers.some((layer) => activeLayers.includes(layer))
     if (!hasActiveLayer) return false
 
+    // 3. Фильтры
     if (activeFilters.length > 0) {
       return activeFilters.every((filter) => obj.properties[filter] === true)
     }
-
     return true
   })
 
-  // Get marker color
   const getMarkerColor = useCallback((obj: MapObject) => {
     for (const layer of obj.layers) {
-      if (activeLayers.includes(layer) && FILTER_COLORS[layer]) {
-        return FILTER_COLORS[layer]
-      }
+      if (activeLayers.includes(layer) && FILTER_COLORS[layer]) return FILTER_COLORS[layer]
     }
     return FILTER_COLORS.inclusive
   }, [activeLayers])
 
-  // Active filter count
   const activeFilterCount = activeLayers.length + activeFilters.length - 1
 
-  // Sidebar content component
-  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
-    <div className="flex h-full flex-col bg-card">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Filter className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-foreground">Фильтры</h2>
-            <p className="text-xs text-muted-foreground">
-              Найдено: {filteredObjects.length} мест
-            </p>
-          </div>
-        </div>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        )}
-      </div>
-
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Category Filters Section */}
-          <div className="rounded-xl border border-border bg-background/50 overflow-hidden">
-            <button
-              onClick={() => setExpandedSection(expandedSection === "categories" ? null : "categories")}
-              className="flex w-full items-center justify-between p-4 text-left hover:bg-accent/50 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">По категориям</span>
-                <Badge variant="secondary" className="text-xs">
-                  {activeLayers.length}
-                </Badge>
-              </div>
-              {expandedSection === "categories" ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            
-            {expandedSection === "categories" && (
-              <div className="border-t border-border p-3 space-y-1">
-                {CATEGORY_FILTERS.map((filter) => {
-                  const IconComponent = filter.icon
-                  const isActive = activeLayers.includes(filter.id)
-                  return (
-                    <button
-                      key={filter.id}
-                      onClick={() => toggleLayer(filter.id)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all ${
-                        isActive
-                          ? "bg-primary/10 text-primary shadow-sm"
-                          : "text-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                          isActive ? "bg-primary text-primary-foreground" : "bg-muted"
-                        }`}
-                        style={isActive ? { backgroundColor: FILTER_COLORS[filter.id] } : {}}
-                      >
-                        <IconComponent className="h-4 w-4" />
-                      </div>
-                      <span className="text-sm font-medium">{filter.name}</span>
-                      {isActive && (
-                        <div className="ml-auto h-2 w-2 rounded-full bg-primary" style={{ backgroundColor: FILTER_COLORS[filter.id] }} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Accessibility Filters Section */}
-          <div className="rounded-xl border border-border bg-background/50 overflow-hidden">
-            <button
-              onClick={() => setExpandedSection(expandedSection === "accessibility" ? null : "accessibility")}
-              className="flex w-full items-center justify-between p-4 text-left hover:bg-accent/50 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">По удобствам</span>
-                <Badge variant="secondary" className="text-xs">
-                  {activeFilters.length}
-                </Badge>
-              </div>
-              {expandedSection === "accessibility" ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            
-            {expandedSection === "accessibility" && (
-              <div className="border-t border-border p-3 space-y-1">
-                {ACCESSIBILITY_FILTERS.map((filter) => {
-                  const isActive = activeFilters.includes(filter.id)
-                  return (
-                    <label
-                      key={filter.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={isActive}
-                        onCheckedChange={() => toggleFilter(filter.id)}
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      />
-                      <span className="text-sm">{filter.name}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </ScrollArea>
-
-      {/* Footer */}
-      <div className="border-t border-border p-4 bg-background/80 backdrop-blur-sm">
-        <Button 
-          variant="outline" 
-          className="w-full gap-2 h-11" 
-          onClick={resetFilters}
-        >
-          <RotateCcw className="h-4 w-4" />
-          Сбросить все фильтры
-        </Button>
-      </div>
-    </div>
-  )
-
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-background">
-      {/* Mobile Sidebar Overlay */}
+    <div className="relative flex h-screen w-full overflow-hidden bg-[#F7F3E8]">
       {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-[1001] lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 z-[1001] lg:hidden backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
       )}
 
-      {/* Mobile Sidebar */}
-      <div 
-        className={`fixed inset-y-0 right-0 w-full max-w-[320px] z-[1002] transform transition-transform duration-300 ease-in-out lg:hidden ${
-          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className={`fixed inset-y-0 right-0 w-full max-w-[320px] z-[1002] transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl`}
+        style={{ transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)' }}
       >
-        <SidebarContent onClose={() => setMobileMenuOpen(false)} />
+        <SidebarContent 
+          activeLayers={activeLayers}
+          activeFilters={activeFilters}
+          searchQuery={searchQuery}
+          filteredObjectsCount={filteredObjects.length}
+          toggleLayer={toggleLayer}
+          toggleFilter={toggleFilter}
+          resetFilters={resetFilters}
+          setSearchQuery={setSearchQuery}
+          expandedSection={expandedSection}
+          setExpandedSection={setExpandedSection}
+          onClose={() => setMobileMenuOpen(false)}
+        />
       </div>
 
-      {/* Mobile Header */}
-      <header className="absolute left-0 right-0 top-0 z-[1000] lg:hidden">
-        <div className="flex items-center justify-between bg-card/95 px-4 py-3 shadow-lg backdrop-blur-md border-b border-border">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25">
-              <MapPin className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">Доступная Якутия</h1>
-              <p className="text-xs text-muted-foreground">{filteredObjects.length} мест на карте</p>
-            </div>
-          </div>
-
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="relative h-11 w-11"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-            {activeFilterCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </Button>
+      <header className="absolute left-0 right-0 top-0 z-[1000] lg:hidden h-16 bg-[#1B3A5C] shadow-lg flex items-center px-4 gap-4">
+        <button onClick={() => window.location.href = "/"} className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+          <MapPin className="h-6 w-6 text-[#4ECDC4]" />
+          <span className="font-bold text-lg leading-tight">Доступная Якутия</span>
+        </button>
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input 
+            placeholder="Поиск..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 rounded-full bg-white/90 border-0 text-sm focus:ring-2 focus:ring-[#4ECDC4] focus:outline-none"
+          />
         </div>
+        <button onClick={() => setMobileMenuOpen(true)} className="size-10 rounded-full bg-[#4ECDC4] text-white shadow-lg hover:bg-[#3DBDB5] flex items-center justify-center relative" aria-label="Фильтры">
+          <Menu className="size-5" />
+          {activeFilterCount > 0 && <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[#1B3A5C] text-xs font-bold shadow">{activeFilterCount}</span>}
+        </button>
       </header>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex h-full w-80 flex-shrink-0 flex-col border-r border-border shadow-xl">
-        {/* Desktop Header */}
-        <div className="flex items-center gap-3 bg-gradient-to-br from-primary to-primary/90 px-5 py-5 text-primary-foreground">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-            <MapPin className="h-6 w-6" />
+      <aside className="hidden lg:flex h-full w-80 flex-shrink-0 flex-col border-r border-gray-200 shadow-xl z-10 bg-white">
+        <div className="flex items-center gap-3 bg-[#1B3A5C] px-6 py-5 text-white shadow-md cursor-pointer hover:bg-[#162F4C] transition-colors" onClick={() => window.location.href = "/"}>
+          <div className="relative size-10">
+            <MapPin className="size-10 text-[#4ECDC4]" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Доступная Якутия</h1>
-            <p className="text-sm text-primary-foreground/80">Инклюзивный навигатор</p>
+            <h1 className="text-xl font-bold tracking-tight">Доступная Якутия</h1>
+            <p className="text-sm text-white/80">Инклюзивный навигатор</p>
           </div>
         </div>
-        <SidebarContent />
+        <SidebarContent 
+          activeLayers={activeLayers}
+          activeFilters={activeFilters}
+          searchQuery={searchQuery}
+          filteredObjectsCount={filteredObjects.length}
+          toggleLayer={toggleLayer}
+          toggleFilter={toggleFilter}
+          resetFilters={resetFilters}
+          setSearchQuery={setSearchQuery}
+          expandedSection={expandedSection}
+          setExpandedSection={setExpandedSection}
+        />
       </aside>
 
-      {/* Map */}
-      <main className="relative flex-1 pt-[72px] lg:pt-0">
-        <MapContainer
-          center={CONFIG.mapCenter}
-          zoom={CONFIG.defaultZoom}
-          minZoom={CONFIG.minZoom}
-          maxZoom={CONFIG.maxZoom}
-          className="h-full w-full"
-          zoomControl={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
+      <main className="relative flex-1 pt-[64px] lg:pt-0 bg-[#F7F3E8]">
+        <MapContainer center={CONFIG.mapCenter} zoom={CONFIG.defaultZoom} minZoom={CONFIG.minZoom} maxZoom={CONFIG.maxZoom} className="h-full w-full z-0" zoomControl={true}>
+          <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {filteredObjects.map((obj) => (
-            <Marker
-              key={obj.id}
-              position={obj.coordinates}
-              icon={getCategoryMarkerIcon(obj.category, getMarkerColor(obj))}
-            >
+            <Marker key={obj.id} position={obj.coordinates} icon={getCategoryMarkerIcon(obj.category, getMarkerColor(obj))}>
               <Popup maxWidth={320} className="custom-popup">
-                <Card className="border-0 shadow-none overflow-hidden -m-3">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={`https://picsum.photos/seed/${obj.id}/320/160`}
-                      alt={obj.name}
-                      className="h-40 w-full object-cover"
-                    />
+                <div className="p-0 overflow-hidden rounded-xl border-0 shadow-xl bg-white">
+                  <div className="relative h-40">
+                    <img src={`https://picsum.photos/seed/${obj.id}/320/160`} alt={obj.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">
-                      <Badge 
-                        className="mb-2 text-white border-white/30"
-                        style={{ backgroundColor: getMarkerColor(obj) }}
-                      >
+                      <Badge className="mb-2 text-white border-0 shadow-sm" style={{ backgroundColor: getMarkerColor(obj) }}>
                         {CATEGORY_CONFIG[obj.category]?.name || obj.category}
                       </Badge>
-                      <h3 className="text-lg font-bold text-white drop-shadow-lg">{obj.name}</h3>
+                      <h3 className="text-lg font-bold text-white drop-shadow-md leading-tight">{obj.name}</h3>
                     </div>
                   </div>
-                  <div className="p-4 space-y-3">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{obj.description}</p>
-
-                    {/* Features */}
+                  <div className="p-4 space-y-4">
+                    <p className="text-sm text-[#2C3E50]/80 leading-relaxed line-clamp-3">{obj.description}</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {Object.entries(obj.properties)
-                        .filter(([, value]) => value === true)
-                        .slice(0, 5)
-                        .map(([key]) => (
-                          <Badge key={key} variant="secondary" className="text-xs font-normal">
-                            {FEATURE_NAMES[key] || key}
-                          </Badge>
-                        ))}
+                      {Object.entries(obj.properties).filter(([, value]) => value === true).slice(0, 4).map(([key]) => (
+                        <Badge key={key} variant="secondary" className="text-xs font-normal bg-[#4ECDC4]/10 text-[#1B3A5C] border-[#4ECDC4]/30">
+                          {FEATURE_NAMES[key] || key}
+                        </Badge>
+                      ))}
                     </div>
-
-                    {/* Contacts */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                    <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
                       {obj.contacts.phone && (
-                        <a
-                          href={`tel:${obj.contacts.phone}`}
-                          className="flex items-center gap-2 text-sm text-primary hover:underline font-medium"
-                        >
-                          <Phone className="h-4 w-4" />
-                          {obj.contacts.phone}
+                        <a href={`tel:${obj.contacts.phone}`} className="flex items-center gap-2 text-sm text-[#1B3A5C] hover:text-[#4ECDC4] transition-colors font-medium">
+                          <Phone className="h-4 w-4" /> {obj.contacts.phone}
                         </a>
                       )}
                       {obj.contacts.website && (
-                        <a
-                          href={obj.contacts.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-primary hover:underline font-medium"
-                        >
-                          <Globe className="h-4 w-4" />
-                          Перейти на сайт
+                        <a href={obj.contacts.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-[#1B3A5C] hover:text-[#4ECDC4] transition-colors font-medium">
+                          <Globe className="h-4 w-4" /> Перейти на сайт
                         </a>
+                      )}
+                      {onPlaceSelect && (
+                        <Button className="w-full mt-2 bg-[#4ECDC4] hover:bg-[#3DBDB5] text-white rounded-lg" onClick={() => onPlaceSelect(obj.id)}>
+                          Подробнее
+                        </Button>
                       )}
                     </div>
                   </div>
-                </Card>
+                </div>
               </Popup>
             </Marker>
           ))}
-
           {filteredObjects.length > 0 && <MapBoundsController objects={filteredObjects} />}
         </MapContainer>
-
-        {/* Floating Stats Badge - Mobile Only */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 lg:hidden">
-          <Badge 
-            variant="secondary" 
-            className="px-4 py-2 text-sm font-medium shadow-lg bg-card/95 backdrop-blur-md border border-border"
-          >
-            <MapPin className="h-4 w-4 mr-2 text-primary" />
-            {filteredObjects.length} мест на карте
+        
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 lg:hidden pointer-events-none">
+          <Badge variant="secondary" className="px-4 py-2 text-sm font-medium shadow-lg bg-white/90 backdrop-blur-md border border-gray-200 text-[#1B3A5C]">
+            <MapPin className="h-4 w-4 mr-2 text-[#4ECDC4]" /> {filteredObjects.length} мест
           </Badge>
         </div>
       </main>
