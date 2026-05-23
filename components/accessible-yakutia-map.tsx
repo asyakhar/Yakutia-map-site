@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useRouter } from "next/navigation";
 import {
   Filter,
   X,
@@ -354,6 +355,7 @@ function SidebarContent({
 }
 
 export default function AccessibleYakutiaMap({ onPlaceSelect }: AccessibleYakutiaMapProps) {
+  const router = useRouter();
   const [objects, setObjects] = useState<MapObject[]>([])
   const [activeLayers, setActiveLayers] = useState<string[]>(["inclusive"])
   const [activeFilters, setActiveFilters] = useState<string[]>([])
@@ -437,7 +439,7 @@ export default function AccessibleYakutiaMap({ onPlaceSelect }: AccessibleYakuti
       </div>
 
       <header className="absolute left-0 right-0 top-0 z-[1000] lg:hidden h-16 bg-[#1B3A5C] shadow-lg flex items-center px-4 gap-4">
-        <button onClick={() => window.location.href = "/"} className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
           <MapPin className="h-6 w-6 text-[#4ECDC4]" />
           <span className="font-bold text-lg leading-tight">Доступная Якутия</span>
         </button>
@@ -457,7 +459,7 @@ export default function AccessibleYakutiaMap({ onPlaceSelect }: AccessibleYakuti
       </header>
 
       <aside className="hidden lg:flex h-full w-80 flex-shrink-0 flex-col border-r border-gray-200 shadow-xl z-10 bg-white">
-        <div className="flex items-center gap-3 bg-[#1B3A5C] px-6 py-5 text-white shadow-md cursor-pointer hover:bg-[#162F4C] transition-colors" onClick={() => window.location.href = "/"}>
+        <div className="flex items-center gap-3 bg-[#1B3A5C] px-6 py-5 text-white shadow-md cursor-pointer hover:bg-[#162F4C] transition-colors" onClick={() =>router.push("/")}>
           <div className="relative size-10">
             <MapPin className="size-10 text-[#4ECDC4]" strokeWidth={1.5} />
           </div>
