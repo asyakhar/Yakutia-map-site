@@ -364,7 +364,7 @@ export default function AccessibleYakutiaMap({ onPlaceSelect }: AccessibleYakuti
   const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    const basePath = process.env.NODE_ENV === 'production' ? '/site-test-map' : ''
+    const basePath = process.env.NODE_ENV === 'production' ? '/Yakutia-map-site' : ''
     fetch(`${basePath}/data/objects.json`)
       .then((res) => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))
       .then((data) => setObjects(data))

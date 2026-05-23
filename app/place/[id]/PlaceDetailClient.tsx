@@ -122,7 +122,7 @@ export default function PlaceDetailClient({ id }: { id: string }) {
 
   useEffect(() => {
     const basePath = process.env.NODE_ENV === 'production' 
-      ? '/site-test-map'
+      ? '/Yakutia-map-site'
       : ''
 
     fetch(`${basePath}/data/objects.json`)

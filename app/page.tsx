@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-const BASE_PATH = process.env.NODE_ENV === 'production' ? '/site-test-map' : '';
+const BASE_PATH = process.env.NODE_ENV === 'production' ? '/Yakutia-map-site' : '';
 type FunctionalNeed = {
   id: string;
   icon: any;
