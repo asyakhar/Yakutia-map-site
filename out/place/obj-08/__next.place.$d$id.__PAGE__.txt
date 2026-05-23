@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[95915,["/Yakutia-map-site/_next/static/chunks/0cdz_nm.uktub.js","/Yakutia-map-site/_next/static/chunks/0..jgqr1yqxzu.js","/Yakutia-map-site/_next/static/chunks/0-n__7fxkmpob.js","/Yakutia-map-site/_next/static/chunks/0ta_1w7~w1rhq.js"],"default"]
+3:I[40599,["/Yakutia-map-site/_next/static/chunks/0cdz_nm.uktub.js","/Yakutia-map-site/_next/static/chunks/0..jgqr1yqxzu.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"id":"obj-08"}],[["$","script","script-0",{"src":"/Yakutia-map-site/_next/static/chunks/0-n__7fxkmpob.js","async":true}],["$","script","script-1",{"src":"/Yakutia-map-site/_next/static/chunks/0ta_1w7~w1rhq.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"VwkVcccVNRlsWIQOBUpNq"}
+5:null
